@@ -4,7 +4,7 @@ import Message from './Message.jsx';
 class MessageList extends Component {
   render() {
     const messages = this.props.messages.map(message => (
-      <Message message={message} content={message} />
+      <Message key={message.id} message={message} />
     ));
     return (
       <main className="messages">
@@ -14,3 +14,9 @@ class MessageList extends Component {
   }
 }
 export default MessageList;
+
+
+// <div className="message system">
+// Anonymous1 changed their name to nomnom.
+// </div>
+// </div>
