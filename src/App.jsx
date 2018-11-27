@@ -2,45 +2,52 @@ import React, {Component} from 'react';
 import MessageList from './MessageList.jsx';
 import ChatBar from './ChatBar.jsx';
 
+
+
+
 class App extends Component {
   constructor() {
     super();
     this.state = {
       currentUser: {name: "Bob"},
-      messages: 
-        [{
-          id: 1,
-          username: "Bob",
-          content: "Has anyone seen my marbles?",
-        },
-        {
-          id: 2,
-          username: "Anonymous",
-          content: "No, I think you lost them. You lost your marbles Bob. You lost them for good."
-        }],
+      messages: []
     };
+    this.socket = new WebSocket('ws://localhost:3001/');
     this.addMessage = this.addMessage.bind(this);
   }
-
+  
   componentDidMount() {
-    console.log("componentDidMount <App />");
+    this.socket.onopen = function(e) {
+      console.log('Connected to: ' + e.currentTarget.url);
+    };
     setTimeout(() => {
-      console.log("Simulating incoming message");
       const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
       const messages = this.state.messages.concat(newMessage)
       this.setState({messages: messages})
     }, 3000);
+    this.socket.onmessage = function (event) {
+      console.log(JSON.parse(event.data));
+    }
   }
 
   addMessage(content) {
+    console.log(content)
     const newMessage = {
-      id: Math.floor(Math.random() * 100),
       username: this.state.currentUser.name,
       content
     };
-    const oldList = this.state.messages;
-    const newList = [...oldList, newMessage];
-    this.setState({ messages: newList });
+    console.log(newMessage)
+    this.socket.send(JSON.stringify(newMessage)); 
+
+
+    // const newMessage = {
+    //   id: Math.floor(Math.random() * 100),
+    //   username: this.state.currentUser.name,
+    //   content
+    // };
+    // const oldList = this.state.messages;
+    // const newList = [...oldList, newMessage];
+    // this.setState({ messages: newList });
   }
 
   render() {
