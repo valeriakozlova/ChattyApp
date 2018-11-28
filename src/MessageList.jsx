@@ -15,8 +15,3 @@ class MessageList extends Component {
 }
 export default MessageList;
 
-
-// <div className="message system">
-// Anonymous1 changed their name to nomnom.
-// </div>
-// </div>

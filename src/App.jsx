@@ -3,58 +3,59 @@ import MessageList from './MessageList.jsx';
 import ChatBar from './ChatBar.jsx';
 
 
-
-
 class App extends Component {
   constructor() {
     super();
     this.state = {
       currentUser: {name: "Bob"},
-      messages: []
+      messages: [],
+      userCount: 1
     };
     this.socket = new WebSocket('ws://localhost:3001/');
     this.addMessage = this.addMessage.bind(this);
+    this.changeUser = this.changeUser.bind(this);
   }
   
   componentDidMount() {
-    this.socket.onopen = function(e) {
-      console.log('Connected to: ' + e.currentTarget.url);
+    this.socket.onopen = function(event) {
+      console.log('Connected to: ' + event.currentTarget.url);
     };
-    setTimeout(() => {
-      const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
-      const messages = this.state.messages.concat(newMessage)
-      this.setState({messages: messages})
-    }, 3000);
-    this.socket.onmessage = function (event) {
-      console.log(JSON.parse(event.data));
+
+    this.socket.onmessage = event => {
+      const data = JSON.parse(event.data);
+      if(data.type === "userCount"){
+        const userCount = data.userCount;
+        this.setState({userCount: userCount});
+      }
+      const messages = this.state.messages.concat(data);
+      this.setState({messages: messages});
     }
   }
 
   addMessage(content) {
-    console.log(content)
     const newMessage = {
+      type: "postMessage",
       username: this.state.currentUser.name,
       content
     };
-    console.log(newMessage)
     this.socket.send(JSON.stringify(newMessage)); 
+  }
 
-
-    // const newMessage = {
-    //   id: Math.floor(Math.random() * 100),
-    //   username: this.state.currentUser.name,
-    //   content
-    // };
-    // const oldList = this.state.messages;
-    // const newList = [...oldList, newMessage];
-    // this.setState({ messages: newList });
+  changeUser(userName) {
+    const nameChangeNotification = {
+      type: "postNotification",
+      content: `${this.state.currentUser.name} has changed their name to ${userName}.`
+    }
+    this.socket.send(JSON.stringify(nameChangeNotification)); 
+    const user = { name: userName };
+    this.setState({currentUser: user})
   }
 
   render() {
     return (
       <div>
-        <MessageList messages={this.state.messages} />
-        <ChatBar user={this.state.currentUser.name} addMessage={this.addMessage} />
+        <MessageList messages={this.state.messages} notification/>
+        <ChatBar user={this.state.currentUser.name} addMessage={this.addMessage} changeUser={this.changeUser} />
       </div>
     );
   }

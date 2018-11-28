@@ -12,9 +12,13 @@ const server = express()
   .use(express.static('public'))
   .listen(PORT, '0.0.0.0', 'localhost', () => console.log(`Listening on ${ PORT }`));
 
-// Create the WebSockets server
 const wss = new SocketServer({ server });
 
+wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(ws) {
+        ws.send(JSON.stringify(data));
+    });
+  };
 
 
 // Set up a callback that will run when a client connects to the server
@@ -22,14 +26,41 @@ const wss = new SocketServer({ server });
 // the ws parameter in the callback.
 wss.on('connection', (ws) => {
     console.log('Client connected');
-      
-    ws.on('message', function (event) {
-      let newMessage = JSON.parse(event);
-      newMessage.id = uuidv4();
-      ws.send(JSON.stringify(newMessage));
-      console.log(JSON.stringify(newMessage));
-    })
+    
+    const userCount = {
+        type: "userCount",
+        userCount: wss.clients.size
+    };
+    wss.broadcast(userCount);
+    // console.log(wss.clients.size);
 
-  // Set up a callback for when a client closes the socket. This usually means they closed their browser.
-  ws.on('close', () => console.log('Client disconnected'));
+    ws.on('message', function (event) {
+        let data = JSON.parse(event);
+        switch(data.type) {
+            case "postMessage":
+                data.id = uuidv4();
+                data.type = "incomingMessage";
+                break;
+            case "postNotification":
+                data.id = uuidv4();
+                data.type = "incomingNotification";
+                break;
+            default:
+            throw new Error("Unknown event type " + data.type);
+        }
+        ws.send(JSON.stringify(data));
+        console.log(JSON.stringify(data));
+})
+
+    ws.on('close', function () {
+        console.log('Client disconnected');
+        const userCount = {
+            type: "userCount",
+            userCount: wss.clients.size
+        };
+        wss.broadcast(userCount);
+        console.log(wss.clients.size);
+        console.log(userCount);
+
+    });
 });
