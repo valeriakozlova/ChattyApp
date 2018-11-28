@@ -20,19 +20,28 @@ wss.broadcast = function broadcast(data) {
     });
   };
 
-
+function pickColour () {
+    const colours = ["magenta","red","blue","green"];
+    const colour = colours[Math.floor(Math.random() * 4)]
+    return colour;
+}
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
 wss.on('connection', (ws) => {
     console.log('Client connected');
     
+    const colour = {
+        type: "colourAssignment",
+        colour: pickColour()
+    }
+    ws.send(JSON.stringify(colour));
+
     const userCount = {
         type: "userCount",
         userCount: wss.clients.size
     };
     wss.broadcast(userCount);
-    // console.log(wss.clients.size);
 
     ws.on('message', function (event) {
         let data = JSON.parse(event);
@@ -41,6 +50,10 @@ wss.on('connection', (ws) => {
                 data.id = uuidv4();
                 data.type = "incomingMessage";
                 break;
+            case "postImage":
+                data.id = uuidv4();
+                data.type = "incomingImage";
+                break;
             case "postNotification":
                 data.id = uuidv4();
                 data.type = "incomingNotification";
@@ -48,7 +61,8 @@ wss.on('connection', (ws) => {
             default:
             throw new Error("Unknown event type " + data.type);
         }
-        ws.send(JSON.stringify(data));
+        console.log(data)
+        wss.broadcast(data);
         console.log(JSON.stringify(data));
 })
 

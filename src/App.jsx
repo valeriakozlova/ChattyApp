@@ -9,7 +9,7 @@ class App extends Component {
     super();
     this.state = {
       currentUser: {
-        name: "Bob",
+        name: "Anonymous",
         colour: "black" 
       },
       messages: [],
@@ -27,23 +27,46 @@ class App extends Component {
 
     this.socket.onmessage = event => {
       const data = JSON.parse(event.data);
+      console.log("checking get", data)
+
       if(data.type === "userCount"){
         const userCount = data.userCount;
         this.setState({userCount: userCount});
-      } else if (data.type === "incomingNotification" || "incomingMessage") {
+        console.log("user count", data)
+      } else if (data.type === "incomingNotification" || data.type === "incomingMessage" || data.type === "incomingImage") {
         const messages = this.state.messages.concat(data);
         this.setState({messages: messages});
+        console.log("incoming", data)
+      } else if (data.type === "colourAssignment") {
+        console.log("colourAssignment", data)
+        const user = { 
+          name: this.state.currentUser.name,
+          colour: data.colour
+        };
+        this.setState({currentUser: user})
       }
     }
   }
 
   addMessage(content) {
-    const newMessage = {
-      type: "postMessage",
-      username: this.state.currentUser.name,
-      content
-    };
-    this.socket.send(JSON.stringify(newMessage)); 
+    const patt = /(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)/;
+    if (patt.test(content)) {
+      const newMessage = {
+        type: "postImage",
+        username: this.state.currentUser.name,
+        colour: this.state.currentUser.colour,
+        content
+      };
+      this.socket.send(JSON.stringify(newMessage)); 
+    } else {
+       const newMessage = {
+        type: "postMessage",
+        username: this.state.currentUser.name,
+        colour: this.state.currentUser.colour,
+        content
+      };
+      this.socket.send(JSON.stringify(newMessage)); 
+    }
   }
 
   changeUser(userName) {
@@ -63,7 +86,7 @@ class App extends Component {
     return (
       <div>
         <NavBar count={this.state.userCount} />
-        <MessageList messages={this.state.messages} colour={this.state.currentUser.colour} notification/>
+        <MessageList messages={this.state.messages} />
         <ChatBar user={this.state.currentUser.name} addMessage={this.addMessage} changeUser={this.changeUser} />
       </div>
     );
