@@ -24,7 +24,7 @@ class Message extends Component {
     }
     return (
     <div className="notification">
-      <span className="notification-content">{this.props.message.content}</span>
+      <span className="notification-content"><center>{this.props.message.content}</center></span>
     </div>
     )
   }

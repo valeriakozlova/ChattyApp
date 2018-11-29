@@ -44,6 +44,8 @@ class App extends Component {
           colour: data.colour
         };
         this.setState({currentUser: user})
+      } else {
+        throw new Error("Unknown event type " + data.type)
       }
     }
   }
