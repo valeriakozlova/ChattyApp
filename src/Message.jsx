@@ -5,21 +5,27 @@ class Message extends Component {
     const style = {
       color: this.props.message.colour
     }
-
     if (this.props.message.type === "incomingMessage") {
       return (
         <div className="message" >
-            <span className="message-username" style={style}>{this.props.message.username}</span>
-            <span className="message-content">{this.props.message.content}</span>
+          <span className="message-username" style={style}>{this.props.message.username}</span>
+          <span className="time-stamp">{this.props.message.time}</span>
+          <span className="message-content">{this.props.message.content}</span>
         </div>
       )
     }
     if (this.props.message.type === "incomingImage") {
       return (
-        <div className="imageSent" >
+        <div>
+        <div className="message" >
           <span className="message-username" style={style}>{this.props.message.username}</span>
-          <center><img className="image" src={this.props.message.content} /></center>
+          <span className="time-stamp">{this.props.message.time}</span>
+          <span className="message-content">{this.props.message.content}</span>
         </div>
+        <div className="imageSent">
+         <center><img className="image" src={this.props.message.url}  alt={this.props.message.alt}/></center> 
+        </div>
+      </div>
       )
     }
     return (

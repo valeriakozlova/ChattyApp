@@ -1,14 +1,12 @@
 const express = require('express');
 const SocketServer = require('ws').Server;
 const uuidv4 = require('uuid/v4');
+const fetch = require('node-fetch');
+require('dotenv').config();
 
-
-// Set the port to 3001
 const PORT = 3001;
 
-// Create a new express server
 const server = express()
-   // Make the express server serve static assets (html, javascript, css) from the /public folder
   .use(express.static('public'))
   .listen(PORT, '0.0.0.0', 'localhost', () => console.log(`Listening on ${ PORT }`));
 
@@ -20,61 +18,88 @@ wss.broadcast = function broadcast(data) {
     });
   };
 
-function pickColour () {
-    const colours = ["magenta","red","blue","green"];
-    const colour = colours[Math.floor(Math.random() * 4)]
-    return colour;
-}
-// Set up a callback that will run when a client connects to the server
-// When a client connects they are assigned a socket, represented by
-// the ws parameter in the callback.
+const userCount = { type: "userCount" };
+
+// code source: https://stackoverflow.com/questions/1484506/random-color-generator/47231960
+//generates random bright vibrant colours
+function generateColor() {
+    ranges = [
+        [150,256],
+        [0, 190],
+        [0, 30]
+    ];
+    const g = function() {
+        const range = ranges.splice(Math.floor(Math.random()*ranges.length), 1)[0];
+        return Math.floor(Math.random() * (range[1] - range[0])) + range[0];
+    }
+    return "rgb(" + g() + "," + g() + "," + g() +")";
+};
+
 wss.on('connection', (ws) => {
     console.log('Client connected');
     
+    let clientName = "Anonymous";
+    const userJoined = {
+       type: "incomingNotification",
+       content: "Anonymous has joined the chat",
+       id: uuidv4()
+   };
+   wss.broadcast(userJoined);
+
     const colour = {
         type: "colourAssignment",
-        colour: pickColour()
+        colour: generateColor()
     }
     ws.send(JSON.stringify(colour));
 
-    const userCount = {
-        type: "userCount",
-        userCount: wss.clients.size
-    };
+    userCount.userCount = wss.clients.size;
     wss.broadcast(userCount);
 
     ws.on('message', function (event) {
         let data = JSON.parse(event);
-        switch(data.type) {
-            case "postMessage":
-                data.id = uuidv4();
+        if (data.type === "postMessage") {
+            data.id = uuidv4();
+            data.time = Date.now();
+            const giphyTag = data.content.match(/^\/giphy (.+)/);
+            if(giphyTag){
+                    const tag = giphyTag[1];
+                    const apiKey = process.env.API_KEY;
+                fetch(`https://api.giphy.com/v1/gifs/random?q=${tag}&api_key=${apiKey}`)
+                                    .then( resp => resp.json())
+                                    .then( json => {
+                                        data.content = giphyTag[0];
+                                        data.url = json.data.images.original.url;
+                                        data.alt = giphyTag[1];
+                                        data.type = "incomingImage";
+                                        wss.broadcast(data);
+                                    })
+            } else {
                 data.type = "incomingMessage";
-                break;
-            case "postImage":
-                data.id = uuidv4();
-                data.type = "incomingImage";
-                break;
-            case "postNotification":
-                data.id = uuidv4();
-                data.type = "incomingNotification";
-                break;
-            default:
+                wss.broadcast(data);  
+            }
+        } else if (data.type === "postNotification") {
+            data.id = uuidv4();
+            data.type = "incomingNotification";
+            data.content = `${data.oldName} has changed their name to ${data.newName}`;
+            clientName = data.newName;
+            wss.broadcast(data);  
+        } else {
             throw new Error("Unknown event type " + data.type);
         }
-        console.log(data)
-        wss.broadcast(data);
-        console.log(JSON.stringify(data));
-})
+    })
 
     ws.on('close', function () {
         console.log('Client disconnected');
-        const userCount = {
-            type: "userCount",
-            userCount: wss.clients.size
-        };
+
+        userCount.userCount = wss.clients.size;
         wss.broadcast(userCount);
-        console.log(wss.clients.size);
-        console.log(userCount);
+
+        const clientDisconnected = {
+            type: "incomingNotification",
+            id: uuidv4(),
+            content: `${clientName} left the chat`
+        };
+        wss.broadcast(clientDisconnected);
 
     });
 });

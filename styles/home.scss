@@ -48,8 +48,8 @@ body {
 }
 
 .image {
-  height: 60%;
-  width: 60%;
+  height: 30%;
+  width: 30%;
 }
 
 .message.system {
@@ -106,4 +106,13 @@ body {
   padding: 0 10px;
   text-decoration: none;
   color: white;
+}
+
+.time-stamp {
+  overflow: hidden;
+  margin: 5px;
+  padding: 0 10px;
+  color: grey;
+  font-size: x-small;
+  font: small-caption;
 }
