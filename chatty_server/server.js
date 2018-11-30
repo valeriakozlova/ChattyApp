@@ -2,6 +2,7 @@ const express = require('express');
 const SocketServer = require('ws').Server;
 const uuidv4 = require('uuid/v4');
 const fetch = require('node-fetch');
+const querystring = require('querystring');
 require('dotenv').config();
 
 const PORT = 3001;
@@ -59,12 +60,13 @@ wss.on('connection', (ws) => {
         let data = JSON.parse(event);
         if (data.type === "postMessage") {
             data.id = uuidv4();
-            data.time = Date.now();
             const giphyTag = data.content.match(/^\/giphy (.+)/);
             if(giphyTag){
-                    const tag = giphyTag[1];
-                    const apiKey = process.env.API_KEY;
-                fetch(`https://api.giphy.com/v1/gifs/random?q=${tag}&api_key=${apiKey}`)
+                const qs = querystring.stringify({
+                    api_key: process.env.API_KEY,
+                    tag: giphyTag[1]
+                  })
+                fetch(`https://api.giphy.com/v1/gifs/random?${qs}`)
                                     .then( resp => resp.json())
                                     .then( json => {
                                         data.content = giphyTag[0];
