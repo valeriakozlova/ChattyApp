@@ -31,8 +31,8 @@ Open the main folder in a new terminal window. Run the following commands:
 cd chatty_server
 npm install
 npm start
-open http://localhost:3000
 ```
+Open http://localhost:3000
 
 ## Dependencies
 
