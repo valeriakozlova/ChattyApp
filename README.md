@@ -20,16 +20,19 @@ Chatty  allows users to communicate with each other without having to register a
 
 Clone the repo onto your local disk. Run the following commands:
 
+```
 npm install
 npm start
+```
 
 Open the main folder in a new terminal window. Run the following commands:
 
+```
 cd chatty_server
 npm install
 npm start
-
-App will run on: localhost:3000.
+open http://localhost:3000
+```
 
 ## Dependencies
 
