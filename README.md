@@ -5,7 +5,7 @@ Chatty  allows users to communicate with each other without having to register a
 
 ## Final Product
 
-![Main view](addthelink)
+![Main view](https://github.com/valeriakozlova/ChattyApp/blob/master/docs/Screen%20Shot%202018-12-03%20at%208.18.36%20AM.png?raw=true)
 
 
 * When any connected user sends a chat message, all connected users receive and display the message
