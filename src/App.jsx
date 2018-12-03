@@ -17,7 +17,7 @@ class App extends Component {
     };
     this.socket = new WebSocket('ws://localhost:3001/');
     this.addMessage = this.addMessage.bind(this);
-    this.changeUser = this.changeUser.bind(this);
+    this.changeUserName = this.changeUserName.bind(this);
   }
   
   componentDidMount() {
@@ -62,7 +62,7 @@ class App extends Component {
       this.socket.send(JSON.stringify(newMessage)); 
   }
 
-  changeUser(userName) {
+  changeUserName(userName) {
     const nameChangeNotification = {
       type: "postNotification",
       oldName:this.state.currentUser.name,
@@ -81,8 +81,8 @@ class App extends Component {
       <div>
         <NavBar count={this.state.userCount} />
         <MessageList messages={this.state.messages} />
-        <div ref={element => { this.element = element; }} />
-        <ChatBar user={this.state.currentUser.name} addMessage={this.addMessage} changeUser={this.changeUser} />
+        <div ref={element => { this.element = element }} />
+        <ChatBar user={this.state.currentUser.name} addMessage={this.addMessage} changeUserName={this.changeUserName} />
       </div>
     );
   }

@@ -22,7 +22,7 @@ wss.broadcast = function broadcast(data) {
 const userCount = { type: "userCount" };
 
 // code source: https://stackoverflow.com/questions/1484506/random-color-generator/47231960
-//generates random bright vibrant colours
+// generates random bright vibrant colours
 function generateColor() {
     ranges = [
         [150,256],
@@ -37,6 +37,7 @@ function generateColor() {
 };
 
 wss.on('connection', (ws) => {
+    
     console.log('Client connected');
     
     let clientName = "Anonymous";
